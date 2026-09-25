@@ -1,0 +1,9 @@
+# Model dari network volume RunPod. Tata letaknya sama dengan models/ di pod vast, jadi
+# nama berkas di graf Pabrik (termasuk subfolder `Minimax/` untuk VAE video) berlaku apa adanya.
+runpod_volume:
+  base_path: /runpod-volume/models
+  diffusion_models: diffusion_models
+  text_encoders: text_encoders
+  clip: text_encoders
+  vae: vae
+  loras: loras
