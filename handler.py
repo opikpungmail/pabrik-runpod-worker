@@ -12,7 +12,10 @@ Masukan job:
     "awalan": "job_01XYZ/shot-00"                       # awalan kunci di Spaces
   }
 Keluaran:
-  {"berkas": [{"nama", "url", "bytes"}], "detikEksekusi": 71.2, "detikDingin": 38.0 | null}
+  {"berkas": [{"nama", "url", "bytes"}], "detikEksekusi": 71.2, "detikSejakWorkerNaik": 38.0 | null}
+  atau {"galat": "...", "tetap": true} — galat yang PASTI berulang (graf ditolak, galat
+  eksekusi). Sengaja bukan kunci `error`: SDK RunPod menjadikannya status FAILED dan
+  tanda `tetap` hilang, sehingga Pabrik mengulang galat yang tidak akan sembuh.
 """
 import base64
 import os
@@ -104,7 +107,7 @@ def handler(job):
     d = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
     if not r.ok or d.get("node_errors"):
         # Graf yang ditolak tidak akan pernah jadi — Pabrik tidak boleh mengulangnya.
-        return {"error": f"graf ditolak: {str(d.get('node_errors') or d or r.text)[:800]}", "tetap": True}
+        return {"galat": f"graf ditolak: {str(d.get('node_errors') or d or r.text)[:800]}", "tetap": True}
     pid = d["prompt_id"]
 
     while True:
@@ -114,7 +117,7 @@ def handler(job):
             continue
         status = h.get("status") or {}
         if status.get("status_str") == "error":
-            return {"error": ringkas_galat(status), "tetap": True}
+            return {"galat": ringkas_galat(status), "tetap": True}
         if status.get("completed"):
             break
 
@@ -136,7 +139,7 @@ def handler(job):
 
     dingin = None
     if not _dingin_dilaporkan:
-        dingin = round(AWAL_PROSES and (time.time() - AWAL_PROSES), 1)
+        dingin = round(time.time() - AWAL_PROSES, 1)
         _dingin_dilaporkan = True
     return {"berkas": hasil, "detikEksekusi": detik_eksekusi(status), "detikSejakWorkerNaik": dingin}
 
